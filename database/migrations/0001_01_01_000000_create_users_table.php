@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
 
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('update_at')->useCurrentOnUpdate();
+            $table->timestamp('updated_at')->useCurrentOnUpdate();
         });
 
         Schema::create('otp_code', function (Blueprint $table) {
