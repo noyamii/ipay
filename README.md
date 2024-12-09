@@ -1,5 +1,6 @@
 ## How to run
 change ".env.example" to ".env".
+
 For the first time.
 ```
 docker-compose build app
