@@ -6,6 +6,7 @@ use App\Models\Otp;
 use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class OtpController extends Controller
 {
@@ -15,9 +16,17 @@ class OtpController extends Controller
     {
         // TODO: won't allow everyone to request an otp
         // TODO: every 2min from the same user
+         try {
+            $attributes = $request->validate(
+                [
+                    'phone' => 'required',
+                ]
+            );
+        } catch (ValidationException $e) {
+            return response("Your request doesn't satisfy the requirments.", 400);
+        }
 
-        // maybe add a resend function for less db queries
-        $user = Otp::where('id', $request['phone'])->first();
+        $user = Otp::where('id', $attributes['phone'])->first();
         if (!$user)
         {
 
@@ -30,7 +39,7 @@ class OtpController extends Controller
             $expiration = $time->format('H:i');
 
             Otp::create([
-                'id' => $request['phone'],
+                'id' => $attributes['phone'],
                 'code' => $code,
                 'ip_address' => $request->ip(),
                 'expire_at' => $expiration,
