@@ -13,7 +13,7 @@ class OtpController extends Controller
 
     public function send(Request $request)
     {
-        // TODO: won't allow everyone to request a otp
+        // TODO: won't allow everyone to request an otp
         // TODO: every 2min from the same user
 
         // maybe add a resend function for less db queries
