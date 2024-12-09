@@ -16,6 +16,7 @@ class OtpController extends Controller
         // TODO: won't allow everyone to request a otp
         // TODO: every 2min from the same user
 
+        // maybe add a resend function for less db queries
         $user = Otp::where('id', $request['phone'])->first();
         if (!$user)
         {
@@ -36,6 +37,7 @@ class OtpController extends Controller
             ]);
         } else {
             $code = $user['code'];
+            // this return will exist till turning on the sendSMS function
             return response($code);
         }
 
