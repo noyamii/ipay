@@ -49,7 +49,7 @@ class SessionController extends Controller
             return response('User not found', 401);
             // maybe error handling in check function !?
         } elseif ($status == 403) {
-            // INFO: for validating the code and requested ip
+            // INFO: for validating the expiration date, code and requested ip
             return response('otp validation failed', 403);
         } elseif ($status == 404) {
             return response('user not found in otp list', 404);

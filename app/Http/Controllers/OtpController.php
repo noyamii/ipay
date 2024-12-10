@@ -36,7 +36,7 @@ class OtpController extends Controller
             $time = new DateTime();
             // + 10 minutes
             $time->add(new DateInterval('PT10M'));
-            $expiration = $time->format('H:i');
+            $expiration = $time->format('Y-m-d H:i:s');
 
             Otp::create([
                 'id' => $attributes['phone'],
