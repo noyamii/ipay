@@ -31,8 +31,11 @@ class OtpController extends Controller
  
         // every 2min from the same user
         $executed = RateLimiter::attempt(
-            'send-message:'.$request['phone'],
-            $perTwoMinutes = 1,
+            'send-message:'.$attributes['phone'],
+
+            // number of action
+            1,
+
             function() use($attributes){
                 $attributes['code'] = Otp::codeGenerator($attributes);
                 // this return will exist till sendSMS is commented.
@@ -41,7 +44,9 @@ class OtpController extends Controller
                 // 0.35$ az to job nayomadeh *_*
                 // return Otp::sendSMS($attributes);
             },
-            $decayRate = 120,
+
+            // per second
+            120,
         );
         if (! $executed) {
             return response('Too many messages sent!', 403);
