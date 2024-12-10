@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use DateTime;
+use DateInterval;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 
@@ -13,6 +14,32 @@ class Otp extends Model
 
     protected $guarded = ["created_at"];
 
+    public static function codeGenerator(array $attributes) 
+    {
+        $user = self::where('id', $attributes['phone'])->first();
+        if (!$user)
+        {
+
+            $code = rand(10000, 99999);
+
+            // for expiration date
+            $time = new DateTime();
+            // + 10 minutes
+            $time->add(new DateInterval('PT10M'));
+            $expiration = $time->format('Y-m-d H:i:s');
+
+            Otp::create([
+                'id' => $attributes['phone'],
+                'code' => $code,
+                'ip_address' => $attributes['ip_address'],
+                'expire_at' => $expiration,
+            ]);
+        } else {
+            $code = $user['code'];
+        }
+        return $code;
+
+    }
     public static function sendSMS(array $attributes)
     {
         $sid = env('TWILIO_SID');
@@ -22,15 +49,18 @@ class Otp extends Model
             'To' => $attributes['phone'],
             'From' => $fromNumber,
             'Body' => 'Your ipay verfication code: ' . $attributes['code']];
-
+        
+        // TODO: add error handling for twilio's error
         Http::asForm()
         ->withBasicAuth($sid, $token)
         ->post('https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages', $data);
+
+        return ['SMS sent', 200];
     }
 
     public static function check(array $attributes)
     {
-        $user = Otp::where('id', $attributes['phone'])->first();
+        $user = self::where('id', $attributes['phone'])->first();
         if (!$user) {
             return 404;
         }

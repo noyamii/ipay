@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Otp;
-use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\RateLimiter;
 
 class OtpController extends Controller
 {
@@ -15,51 +15,39 @@ class OtpController extends Controller
     public function send(Request $request)
     {
         // TODO: won't allow everyone to request an otp
-        // TODO: every 2min from the same user
+
+        // validating for a valid phone number 
          try {
             $attributes = $request->validate(
                 [
                     'phone' => 'required',
                 ]
             );
+            $attributes['ip_address'] = $request->ip();
         } catch (ValidationException $e) {
             return response("Your request doesn't satisfy the requirments.", 400);
         }
 
-        $user = Otp::where('id', $attributes['phone'])->first();
-        if (!$user)
-        {
+ 
+        // every 2min from the same user
+        $executed = RateLimiter::attempt(
+            'send-message:'.$request['phone'],
+            $perTwoMinutes = 1,
+            function() use($attributes){
+                $attributes['code'] = Otp::codeGenerator($attributes);
+                // this return will exist till sendSMS is commented.
+                return [$attributes['code'], 200];
 
-            $code = rand(10000, 99999);
-
-            // for expiration date
-            $time = new DateTime();
-            // + 10 minutes
-            $time->add(new DateInterval('PT10M'));
-            $expiration = $time->format('Y-m-d H:i:s');
-
-            Otp::create([
-                'id' => $attributes['phone'],
-                'code' => $code,
-                'ip_address' => $request->ip(),
-                'expire_at' => $expiration,
-            ]);
-        } else {
-            $code = $user['code'];
-            // this return will exist till turning on the sendSMS function
-            return response($code);
+                // 0.35$ az to job nayomadeh *_*
+                // return Otp::sendSMS($attributes);
+            },
+            $decayRate = 120,
+        );
+        if (! $executed) {
+            return response('Too many messages sent!', 403);
         }
 
-        // 0.35$ az to job nayomadeh *_*
-        // Otp::sendSMS([
-        //     'phone' => $request['phone'],
-        //     'code' => $code,
-        //     'ip' => $request->ip(),
-        // ]);
-
-        return response('SMS sent.');
-        
-
+        return response($executed[0], $executed[1]);
     }
 
 
