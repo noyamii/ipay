@@ -45,7 +45,7 @@ class OtpController extends Controller
                 // return Otp::sendSMS($attributes);
             },
 
-            // per second
+            // every this seconds
             120,
         );
         if (! $executed) {
